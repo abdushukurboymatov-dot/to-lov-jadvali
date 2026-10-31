@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<title>O'quv Jadvali</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f3f4f9; --card:#fff; --ink:#1b1d2a; --mute:#7a7f93; --line:#e4e6ef;
+  --brand:#4f46e5; --brand-ink:#fff; --ok:#10b981; --ok-dark:#059669; --bad:#ef4444;
+  --chip:#eef0f6; --shadow:0 1px 3px rgba(30,30,60,.08);
+  color-scheme:light;
+}
+[data-theme="dark"]{
+  --bg:#12131a; --card:#1c1e29; --ink:#eceef8; --mute:#9aa0b8; --line:#2b2e3d;
+  --brand:#6d66f5; --chip:#272a38; --shadow:none; color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:40px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:var(--chip);border-radius:12px;padding:10px 14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.primary{background:var(--brand);color:var(--brand-ink);font-weight:600}
+.danger{background:rgba(239,68,68,.12);color:var(--bad)}
+.wrap{max-width:760px;margin:0 auto;padding:0 12px}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header .wrap{display:flex;align-items:center;gap:8px;padding-top:10px;padding-bottom:10px}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#4f46e5,#10b981);display:grid;place-items:center;color:#fff;font-weight:800}
+h1{font-size:17px;margin:0;line-height:1.1;flex:1}
+.saved{font-size:12px;color:var(--ok-dark);background:rgba(16,185,129,.14);border-radius:999px;padding:3px 9px;opacity:0;transition:opacity .3s}
+.saved.on{opacity:1}
+.year{display:flex;align-items:center;background:var(--chip);border-radius:12px}
+.year button{background:none;padding:8px 10px}
+.year b{min-width:44px;text-align:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);margin-top:12px;padding:12px}
+.row{display:flex;gap:8px;align-items:center}
+.grow{flex:1;min-width:0}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;background:var(--chip)}
+.tab.active{background:var(--brand);color:#fff;font-weight:600}
+.tab small{background:rgba(127,127,127,.2);border-radius:999px;padding:1px 8px}
+input[type=text],input[type=number],input[type=search],select{width:100%;background:var(--chip);border:1px solid transparent;border-radius:12px;padding:11px 12px}
+.label{color:var(--mute);font-size:14px}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.summary div{font-size:13px;color:var(--mute)}
+.summary b{display:block;font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums}
+.summary b.ok{color:var(--ok-dark)}
+.hint{font-size:14px;color:var(--mute);margin:0 0 10px}
+.seg{display:inline-flex;background:var(--chip);border-radius:12px;padding:3px}
+.seg button{background:none;padding:7px 12px}
+.seg button.on{background:var(--card);color:var(--brand);font-weight:600;box-shadow:var(--shadow)}
+.tablewrap{overflow-x:auto;margin:10px -12px 0;border-top:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{background:var(--chip);font-size:14px;position:sticky;top:0}
+td.num,th.num{text-align:right}
+.idx{color:var(--mute);width:32px;text-align:center}
+.name{font-weight:600;display:flex;align-items:center;gap:6px}
+.name button{padding:4px 6px;background:none;color:var(--mute)}
+.price{display:inline-block;margin-top:4px;background:var(--chip);border-radius:6px;padding:1px 7px;font-size:13px;color:var(--mute)}
+.pay{width:100%;min-width:130px;background:var(--chip);color:var(--mute);padding:12px}
+.pay.paid{background:linear-gradient(180deg,#14c48b,#059669);color:#fff;font-weight:700}
+.sub{display:block;font-size:13px;color:var(--ok-dark)}
+tfoot td{background:var(--chip);font-weight:700}
+.cell{width:34px;height:34px;padding:0;border-radius:9px;background:var(--chip);color:transparent}
+.cell.paid{background:var(--ok);color:#fff}
+.twelve th,.twelve td{padding:8px 4px;text-align:center}
+.twelve th:nth-child(2),.twelve td:nth-child(2){text-align:left;position:sticky;left:0;background:var(--card);min-width:120px;z-index:1}
+.twelve th:nth-child(2){background:var(--chip);z-index:2}
+.empty{text-align:center;color:var(--mute);padding:36px 12px}
+.bars{display:grid;gap:6px;margin-top:10px}
+.bar{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;font-size:13px}
+.bar i{display:block;height:10px;border-radius:6px;background:var(--brand);min-width:2px}
+.bar span:last-child{font-variant-numeric:tabular-nums;color:var(--mute)}
+dialog{border:0;border-radius:20px;padding:18px;width:min(92vw,380px);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(10,10,20,.55)}
+dialog h2{margin:0 0 12px;font-size:18px}
+dialog label{display:block;margin-bottom:10px;font-size:14px;color:var(--mute)}
+dialog label input{margin-top:4px;color:var(--ink)}
+.pop{position:absolute;right:12px;top:58px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px;display:none;flex-direction:column;box-shadow:0 8px 24px rgba(0,0,0,.18);z-index:9}
+.pop.open{display:flex}
+.pop button{background:none;justify-content:flex-start;border-radius:10px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="logo" aria-hidden="true">OJ</div>
+    <h1>O'quv<br>Jadvali</h1>
+    <span class="saved" id="saved">Saqlandi</span>
+    <div class="year">
+      <button data-a="year-prev" aria-label="Oldingi yil">‹</button>
+      <b id="yearLabel"></b>
+      <button data-a="year-next" aria-label="Keyingi yil">›</button>
+    </div>
+    <button data-a="excel" class="primary" style="background:var(--ok-dark)" aria-label="Excelga yuklash">XLS</button>
+    <button data-a="menu" aria-label="Ma'lumotlar">⋮</button>
+    <button data-a="theme" aria-label="Tungi rejim" id="themeBtn">🌙</button>
+  </div>
+  <div class="wrap" style="position:relative">
+    <div class="pop" id="pop">
+      <button data-a="backup">Zaxira nusxa (JSON)</button>
+      <button data-a="restore">Zaxiradan tiklash</button>
+      <button data-a="wipe" style="color:var(--bad)">Hammasini o'chirish</button>
+    </div>
+  </div>
+</header>
+<input type="file" id="file" accept="application/json" hidden>
+
+<main class="wrap" id="app"></main>
+
+<dialog id="dlg"><form method="dialog" id="dlgForm"></form></dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+const MONTHS=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+const SHORT=['Yan','Fev','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+const STORE='oquv-jadvali-v1';
+
+let db=load();
+let ui={year:new Date().getFullYear(),month:new Date().getMonth(),gid:null,view:'one',filter:'all',q:'',stats:false};
+if(!db.groups.find(g=>g.id===ui.gid)) ui.gid=db.groups[0]?.id||null;
+
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(STORE));if(d&&Array.isArray(d.groups))return d}catch(e){}
+  return {groups:[]};
+}
+let saveTimer;
+function save(){
+  localStorage.setItem(STORE,JSON.stringify(db));
+  const s=document.getElementById('saved');s.classList.add('on');
+  clearTimeout(saveTimer);saveTimer=setTimeout(()=>s.classList.remove('on'),1200);
+}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const key=(y,m)=>y+'-'+String(m+1).padStart(2,'0');
+const fmt=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const group=()=>db.groups.find(g=>g.id===ui.gid);
+const yearSum=(s,y)=>Object.entries(s.paid).filter(([k])=>k.startsWith(y+'-')).reduce((a,[,v])=>a+v,0);
+const yearCnt=(s,y)=>Object.keys(s.paid).filter(k=>k.startsWith(y+'-')).length;
+
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1800)}
+
+/* ---------- render ---------- */
+function render(){
+  document.getElementById('yearLabel').textContent=ui.year;
+  const g=group();
+  const app=document.getElementById('app');
+  let h='<div class="card"><div class="row"><div class="tabs grow">';
+  db.groups.forEach(x=>{h+=`<button class="tab ${x.id===ui.gid?'active':''}" data-a="pick" data-id="${x.id}">${esc(x.name)} <small>${x.students.length}</small></button>`});
+  h+=`</div><button class="primary" data-a="add-group" aria-label="Guruh qo'shish">+</button>`;
+  if(g) h+=`<button data-a="edit-group" aria-label="Guruhni tahrirlash">✎</button><button class="danger" data-a="del-group" aria-label="Guruhni o'chirish">🗑</button>`;
+  h+='</div></div>';
+
+  if(!g){
+    h+='<div class="card empty">Hali guruh yo\'q.<br>Birinchi guruhni qo\'shing: yuqoridagi <b>+</b> tugmasini bosing.</div>';
+    app.innerHTML=h;return;
+  }
+
+  const k=key(ui.year,ui.month);
+  const total=g.students.length;
+  const paidNow=g.students.filter(s=>s.paid[k]);
+  const monthSum=paidNow.reduce((a,s)=>a+s.paid[k],0);
+  const ySum=g.students.reduce((a,s)=>a+yearSum(s,ui.year),0);
+
+  h+=`<div class="card">
+    <div class="row">
+      <span class="label">Narx:</span>
+      <input class="grow" type="number" inputmode="numeric" id="price" value="${g.price}" min="0" aria-label="Oylik narx">
+      <button class="primary" data-a="apply-price">Barchaga</button>
+      <button data-a="stats">Statistika ${ui.stats?'▴':'▾'}</button>
+    </div>
+    <div class="summary">
+      <div>O'quvchilar<b>${total}</b></div>
+      <div>${SHORT[ui.month]}<b class="ok">${fmt(monthSum)} so'm</b>(${paidNow.length}/${total})</div>
+      <div>Yillik<b>${fmt(ySum)} so'm</b></div>
+    </div>`;
+  if(ui.stats){
+    const sums=MONTHS.map((_,m)=>g.students.reduce((a,s)=>a+(s.paid[key(ui.year,m)]||0),0));
+    const mx=Math.max(1,...sums);
+    h+='<div class="bars">'+sums.map((v,m)=>`<div class="bar"><span>${SHORT[m]}</span><i style="width:${v/mx*100}%"></i><span>${fmt(v)}</span></div>`).join('')+'</div>';
+  }
+  h+='</div>';
+
+  h+=`<div class="card">
+    <div class="row"><input class="grow" type="text" id="newName" placeholder="Familiya va Ism…" autocomplete="off"><button class="primary" data-a="add-student">+ Qo'shish</button></div>
+    <div class="row" style="margin-top:8px">
+      <input class="grow" type="search" id="q" placeholder="Qidirish…" value="${esc(ui.q)}">
+      <select id="filter" style="width:auto" aria-label="Filtr">
+        <option value="all" ${ui.filter==='all'?'selected':''}>Barchasi</option>
+        <option value="paid" ${ui.filter==='paid'?'selected':''}>To'laganlar</option>
+        <option value="unpaid" ${ui.filter==='unpaid'?'selected':''}>To'lamaganlar</option>
+      </select>
+    </div>
+  </div>`;
+
+  h+=`<div class="card" style="padding-bottom:0">
+    <p class="hint">O'quvchi to'lagan bo'lsa katakchani bosing — <b>to'langan</b> bo'ladi.</p>
+    <div class="seg"><button data-a="view" data-v="one" class="${ui.view==='one'?'on':''}">Bitta oy</button><button data-a="view" data-v="twelve" class="${ui.view==='twelve'?'on':''}">12 oy</button></div>`;
+
+  const list=g.students.map((s,i)=>({s,i})).filter(({s})=>{
+    if(ui.q&&!s.name.toLowerCase().includes(ui.q.toLowerCase()))return false;
+    if(ui.filter==='paid'&&!s.paid[k])return false;
+    if(ui.filter==='unpaid'&&s.paid[k])return false;
+    return true;
+  });
+
+  if(!g.students.length){
+    h+='<div class="empty">Bu guruhda o\'quvchi yo\'q.<br>Yuqoridagi maydonga ism yozib, <b>Qo\'shish</b> ni bosing.</div>';
+  }else if(!list.length){
+    h+='<div class="empty">Hech narsa topilmadi.</div>';
+  }else if(ui.view==='one'){
+    h+=`<div class="tablewrap"><table><thead><tr><th class="idx">#</th><th>Familiya va Ism</th>
+      <th><div class="row" style="justify-content:center">
+        <button data-a="mprev" style="padding:6px 10px" aria-label="Oldingi oy">‹</button>
+        <select id="month" style="width:auto;background:var(--brand);color:#fff;font-weight:600">${MONTHS.map((m,i)=>`<option value="${i}" ${i===ui.month?'selected':''} style="color:#000">${m}</option>`).join('')}</select>
+        <button data-a="mnext" style="padding:6px 10px" aria-label="Keyingi oy">›</button>
+      </div></th><th class="num">Jami</th></tr></thead><tbody>`;
+    list.forEach(({s,i})=>{
+      const p=!!s.paid[k];
+      h+=`<tr><td class="idx">${i+1}</td>
+        <td><div class="name">${esc(s.name)}<button data-a="edit-student" data-id="${s.id}" aria-label="Tahrirlash">✎</button></div><span class="price">${fmt(s.price)}</span></td>
+        <td><button class="pay ${p?'paid':''}" data-a="toggle" data-id="${s.id}" data-m="${ui.month}">${p?'✓ ':''}+ To'langan</button></td>
+        <td class="num"><b>${fmt(yearSum(s,ui.year))}</b><span class="sub">${yearCnt(s,ui.year)} oy</span></td></tr>`;
+    });
+    h+=`</tbody><tfoot><tr><td class="idx">Σ</td><td>JAMI (${list.length})</td>
+      <td style="text-align:center">${fmt(monthSum)} so'm<span class="sub">${paidNow.length}/${total} to'lagan</span></td>
+      <td class="num">${fmt(ySum)} so'm</td></tr></tfoot></table></div>`;
+  }else{
+    h+=`<div class="tablewrap"><table class="twelve"><thead><tr><th>#</th><th>Familiya va Ism</th>${SHORT.map(m=>`<th>${m}</th>`).join('')}<th class="num">Jami</th></tr></thead><tbody>`;
+    list.forEach(({s,i})=>{
+      h+=`<tr><td class="idx">${i+1}</td><td><div class="name">${esc(s.name)}<button data-a="edit-student" data-id="${s.id}" aria-label="Tahrirlash">✎</button></div></td>`;
+      for(let m=0;m<12;m++){const p=!!s.paid[key(ui.year,m)];h+=`<td><button class="cell ${p?'paid':''}" data-a="toggle" data-id="${s.id}" data-m="${m}" aria-label="${MONTHS[m]}">✓</button></td>`}
+      h+=`<td class="num"><b>${fmt(yearSum(s,ui.year))}</b></td></tr>`;
+    });
+    h+=`</tbody><tfoot><tr><td></td><td>JAMI</td>`;
+    for(let m=0;m<12;m++){const c=g.students.filter(s=>s.paid[key(ui.year,m)]).length;h+=`<td>${c}</td>`}
+    h+=`<td class="num">${fmt(ySum)}</td></tr></tfoot></table></div>`;
+  }
+  h+='</div>';
+  app.innerHTML=h;
+}
+
+/* ---------- dialog helper ---------- */
+function openForm({title,fields,onSave,onDelete}){
+  const f=document.getElementById('dlgForm'),d=document.getElementById('dlg');
+  f.innerHTML=`<h2>${esc(title)}</h2>`+fields.map(x=>`<label>${esc(x.label)}<input name="${x.id}" type="${x.type}" value="${esc(x.value)}" ${x.type==='number'?'inputmode="numeric" min="0"':''} required></label>`).join('')+
+   `<div class="row" style="margin-top:14px">${onDelete?'<button type="button" class="danger" id="dlgDel">O\'chirish</button>':''}<span class="grow"></span><button type="button" id="dlgCancel">Bekor qilish</button><button class="primary" type="submit">Saqlash</button></div>`;
+  f.onsubmit=e=>{e.preventDefault();const v={};fields.forEach(x=>v[x.id]=f.elements[x.id].value.trim());onSave(v);d.close()};
+  f.querySelector('#dlgCancel').onclick=()=>d.close();
+  if(onDelete)f.querySelector('#dlgDel').onclick=()=>{if(confirm("Rostdan ham o'chirilsinmi?")){onDelete();d.close()}};
+  d.showModal();
+}
+
+/* ---------- actions ---------- */
+const A={
+  'year-prev'(){ui.year--;render()},
+  'year-next'(){ui.year++;render()},
+  pick(el){ui.gid=el.dataset.id;render()},
+  'add-group'(){
+    openForm({title:"Yangi guruh",fields:[{id:'name',label:'Guruh nomi',type:'text',value:''},{id:'price',label:"Oylik narx (so'm)",type:'number',value:'350000'}],
+      onSave(v){const g={id:uid(),name:v.name,price:+v.price||0,students:[]};db.groups.push(g);ui.gid=g.id;save();render()}});
+  },
+  'edit-group'(){
+    const g=group();
+    openForm({title:"Guruhni tahrirlash",fields:[{id:'name',label:'Guruh nomi',type:'text',value:g.name},{id:'price',label:"Oylik narx (so'm)",type:'number',value:g.price}],
+      onSave(v){g.name=v.name;g.price=+v.price||0;save();render()}});
+  },
+  'del-group'(){
+    const g=group();
+    if(!confirm(`"${g.name}" guruhi va undagi barcha o'quvchilar o'chirilsinmi?`))return;
+    db.groups=db.groups.filter(x=>x.id!==g.id);ui.gid=db.groups[0]?.id||null;save();render();
+  },
+  'apply-price'(){
+    const g=group(),p=+document.getElementById('price').value||0;
+    g.price=p;g.students.forEach(s=>s.price=p);save();render();toast("Narx barcha o'quvchilarga qo'llandi");
+  },
+  stats(){ui.stats=!ui.stats;render()},
+  'add-student'(){
+    const inp=document.getElementById('newName'),name=inp.value.trim();
+    if(!name){inp.focus();return}
+    const g=group();g.students.push({id:uid(),name,price:g.price,paid:{}});save();render();
+    document.getElementById('newName').focus();
+  },
+  'edit-student'(el){
+    const g=group(),s=g.students.find(x=>x.id===el.dataset.id);
+    openForm({title:"O'quvchini tahrirlash",fields:[{id:'name',label:'Familiya va Ism',type:'text',value:s.name},{id:'price',label:"Oylik narx (so'm)",type:'number',value:s.price}],
+      onSave(v){s.name=v.name;s.price=+v.price||0;save();render()},
+      onDelete(){g.students=g.students.filter(x=>x.id!==s.id);save();render()}});
+  },
+  toggle(el){
+    const s=group().students.find(x=>x.id===el.dataset.id),k=key(ui.year,+el.dataset.m);
+    if(s.paid[k])delete s.paid[k];else s.paid[k]=s.price;
+    save();render();
+  },
+  view(el){ui.view=el.dataset.v;render()},
+  mprev(){if(ui.month===0){ui.month=11;ui.year--}else ui.month--;render()},
+  mnext(){if(ui.month===11){ui.month=0;ui.year++}else ui.month++;render()},
+  theme(){
+    const dark=document.documentElement.dataset.theme!=='dark';
+    document.documentElement.dataset.theme=dark?'dark':'light';
+    localStorage.setItem('oquv-theme',dark?'dark':'light');
+    document.getElementById('themeBtn').textContent=dark?'☀️':'🌙';
+  },
+  menu(){document.getElementById('pop').classList.toggle('open')},
+  backup(){
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));
+    a.download='oquv-jadvali-zaxira.json';a.click();URL.revokeObjectURL(a.href);
+  },
+  restore(){document.getElementById('file').click()},
+  wipe(){
+    if(confirm("Barcha ma'lumotlar o'chiriladi. Davom etasizmi?")){db={groups:[]};ui.gid=null;save();render()}
+  },
+  excel(){
+    if(typeof XLSX==='undefined'){toast('Excel kutubxonasi yuklanmadi. Internetni tekshiring.');return}
+    const wb=XLSX.utils.book_new();
+    const sheets=db.groups.length?db.groups:[];
+    if(!sheets.length){toast("Avval guruh qo'shing");return}
+    sheets.forEach(g=>{
+      const rows=[['#','Familiya va Ism','Narx',...MONTHS,'Jami']];
+      g.students.forEach((s,i)=>rows.push([i+1,s.name,s.price,...MONTHS.map((_,m)=>s.paid[key(ui.year,m)]||0),yearSum(s,ui.year)]));
+      rows.push(['','JAMI','',...MONTHS.map((_,m)=>g.students.reduce((a,s)=>a+(s.paid[key(ui.year,m)]||0),0)),g.students.reduce((a,s)=>a+yearSum(s,ui.year),0)]);
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),g.name.replace(/[\\\/?*\[\]:]/g,'').slice(0,31)||'Guruh');
+    });
+    XLSX.writeFile(wb,`oquv-jadvali-${ui.year}.xlsx`);
+  }
+};
+
+document.addEventListener('click',e=>{
+  const pop=document.getElementById('pop');
+  const el=e.target.closest('[data-a]');
+  if(!el){pop.classList.remove('open');return}
+  if(el.dataset.a!=='menu')pop.classList.remove('open');
+  A[el.dataset.a]?.(el);
+});
+document.addEventListener('input',e=>{
+  if(e.target.id==='q'){
+    ui.q=e.target.value;const pos=e.target.selectionStart;render();
+    const q=document.getElementById('q');q.focus();q.setSelectionRange(pos,pos);
+  }
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='filter'){ui.filter=e.target.value;render()}
+  if(e.target.id==='month'){ui.month=+e.target.value;render()}
+  if(e.target.id==='price'){const g=group();g.price=+e.target.value||0;save()}
+  if(e.target.id==='file'){
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const d=JSON.parse(r.result);
+        if(!d||!Array.isArray(d.groups))throw 0;
+        db=d;ui.gid=db.groups[0]?.id||null;save();render();toast('Ma\'lumotlar tiklandi');
+      }catch(_){toast("Fayl noto'g'ri")}
+    };
+    r.readAsText(f);e.target.value='';
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.id==='newName'){e.preventDefault();A['add-student']()}
+});
+
+/* theme + start */
+(function(){
+  const t=localStorage.getItem('oquv-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  document.documentElement.dataset.theme=t;
+  document.getElementById('themeBtn').textContent=t==='dark'?'☀️':'🌙';
+  render();
+})();
+</script>
+</body>
+</html>
